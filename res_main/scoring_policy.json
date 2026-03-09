@@ -1,0 +1,194 @@
+{
+  "version": "1.0.0",
+  "description": "Resume scoring policy - ground truth evaluation",
+
+  "final_score_weights": {
+    "stack_accuracy": 0.22,
+    "commit_quality": 0.26,
+    "code_quality": 0.20,
+    "project_depth": 0.13,
+    "documentation": 0.09,
+    "graphcodebert_quality": 0.10
+  },
+
+  "stack_accuracy": {
+    "false_claim_penalty_per_stack": 15,
+    "max_penalty": 60,
+    "unknown_stack_confidence_reduction": 0.1
+  },
+
+  "confidence": {
+    "base": 0.70,
+    "confirmed_stack_bonus": 0.10,
+    "unknown_stack_penalty": 0.05,
+    "false_claim_penalty": 0.10,
+    "min": 0.30,
+    "max": 0.95
+  },
+
+  "commit_quality": {
+    "commit_count_thresholds": [
+      { "min": 1, "max": 5, "score": 40 },
+      { "min": 6, "max": 15, "score": 60 },
+      { "min": 16, "max": 50, "score": 80 },
+      { "min": 51, "max": 200, "score": 100 },
+      { "min": 201, "max": 99999, "score": 90 }
+    ],
+    "quality_multipliers": {
+      "descriptive_messages": 1.1,
+      "spread_over_time": 1.15,
+      "single_massive_commit": 0.5
+    }
+  },
+
+  "code_quality": {
+    "max_score": 100,
+    "structure_signals": {
+      "modular_folders": 25,
+      "config_files_present": 25,
+      "reasonable_file_sizes": 25,
+      "consistent_naming": 25
+    },
+    "lines_per_commit_ideal_range": [20, 150],
+    "test_file_bonus": 10,
+    "linting_config_bonus": 5
+  },
+
+  "project_depth": {
+    "max_score": 100,
+    "loc_thresholds": [
+      { "min": 0, "score": 0 },
+      { "min": 100, "score": 20 },
+      { "min": 500, "score": 40 },
+      { "min": 1000, "score": 55 },
+      { "min": 2500, "score": 70 },
+      { "min": 5000, "score": 80 }
+    ],
+    "feature_indicators": {
+      "error_handling": 10,
+      "multiple_modules": 10,
+      "data_flow_layers": 10,
+      "edge_case_handling": 10
+    }
+  },
+
+  "documentation": {
+    "max_score": 100,
+    "signals": {
+      "readme_exists": 30,
+      "setup_instructions": 20,
+      "tech_stack_documented": 15,
+      "usage_examples": 20,
+      "screenshots_or_diagrams": 15
+    }
+  },
+
+  "skill_knowledge_assessment": {
+    "description": "Per-stack skill level (0-100). Reflects understanding & implementation depth, stored separately from Stack Accuracy.",
+    "enabled": true,
+    "knowledge_indicators": {
+      "advanced_patterns": 20,
+      "error_handling_patterns": 15,
+      "state_management": 15,
+      "api_integration": 15,
+      "testing_coverage": 10,
+      "performance_optimization": 10,
+      "security_practices": 5
+    },
+    "knowledge_thresholds": {
+      "expert": { "min": 85, "description": "Deep mastery with best practices" },
+      "advanced": { "min": 70, "description": "Strong understanding & proper usage" },
+      "intermediate": { "min": 50, "description": "Functional knowledge, basic patterns" },
+      "beginner": { "min": 30, "description": "Basic usage, minimal patterns" },
+      "novice": { "min": 0, "description": "Claimed but not evidenced" }
+    },
+    "language_specific_signals": {
+      "javascript": {
+        "async_await": 15,
+        "modern_es6_syntax": 10,
+        "closures_and_scope": 10,
+        "event_handling": 5,
+        "dom_manipulation": 5
+      },
+      "python": {
+        "list_comprehensions": 10,
+        "decorators": 15,
+        "exception_handling": 10,
+        "context_managers": 10,
+        "generators": 5
+      },
+      "react": {
+        "hooks_usage": 20,
+        "state_management": 15,
+        "component_optimization": 10,
+        "error_boundaries": 10,
+        "custom_hooks": 5
+      },
+      "java": {
+        "oop_principles": 15,
+        "generics": 10,
+        "exception_handling": 10,
+        "design_patterns": 10,
+        "streams_api": 5
+      },
+      "sql": {
+        "joins_and_aggregates": 15,
+        "query_optimization": 15,
+        "transactions": 10,
+        "indexing": 5,
+        "normalization": 5
+      },
+      "docker": {
+        "multi_stage_builds": 15,
+        "volume_management": 10,
+        "networking": 10,
+        "security": 5
+      }
+    }
+  },
+
+  "graphcodebert": {
+    "enabled": true,
+    "quality_scoring": {
+      "enabled": true,
+      "max_files": 10,
+      "metrics": {
+        "modularity": {
+          "weight": 0.25,
+          "description": "Code separation of concerns and organization"
+        },
+        "reusability": {
+          "weight": 0.25,
+          "description": "Functions parameterized, DRY principle, composition patterns"
+        },
+        "style_consistency": {
+          "weight": 0.20,
+          "description": "Indentation, formatting, language-specific conventions"
+        },
+        "structure": {
+          "weight": 0.30,
+          "description": "File organization, layering, clear architecture"
+        }
+      },
+      "anti_pattern_penalty": 5,
+      "best_practice_bonus": 2,
+      "quality_thresholds": {
+        "excellent": 80,
+        "good": 70,
+        "acceptable": 60,
+        "needs_improvement": 50
+      }
+    },
+    "skill_score": {
+      "independent_only": true,
+      "confirmed_weight": 0.6,
+      "similarity_weight": 0.4,
+      "knows_threshold": 55,
+      "remarks": {
+        "strong": 80,
+        "moderate": 60,
+        "weak": 40
+      }
+    }
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "valuators": [
+    {
+      "username": "valuator1",
+      "password": "password123",
+      "name": "Default Valuator"
+    },
+    {
+      "username": "admin",
+      "password": "admin123",
+      "name": "Admin Valuator"
+    }
+  ],
+  "_comment": "This is a prototype. In production, never store passwords in plain text!"
+}
