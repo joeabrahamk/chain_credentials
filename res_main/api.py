@@ -122,6 +122,8 @@ async def evaluate(
                 result = evaluate_repo(repo_url, local_path, github_username, claimed_stacks, policy)
                 if result is None:
                     continue
+                result["repo_name"] = repo_name
+                result["repo_url"] = repo_url
                 repo_results.append(result)
 
                 confirmed = {c.lower() for c in result["evaluation"]["stack_analysis"]["confirmed"]}
@@ -188,8 +190,39 @@ async def evaluate(
 
         primary_summary = repo_results[0]["evaluation"].get("evaluation_summary", {})
 
+        # ── 7. Build per-project summary ────────────────────────────────────
+        projects_output = []
+        for r in repo_results:
+            ev = r["evaluation"]
+            summary = ev.get("evaluation_summary", {})
+            stack_analysis = ev.get("stack_analysis", {})
+            evidence = ev.get("repo_evidence", {})
+            scores = summary.get("scores", {})
+
+            # Strengths: sub-scores >= 60
+            strengths = [k.replace("_", " ").title() for k, v in scores.items() if isinstance(v, (int, float)) and v >= 60]
+            # Weaknesses: sub-scores < 40
+            weaknesses = [k.replace("_", " ").title() for k, v in scores.items() if isinstance(v, (int, float)) and v < 40]
+
+            projects_output.append({
+                "name": r.get("repo_name", "Unknown Repo"),
+                "url": r.get("repo_url", ""),
+                "final_score": summary.get("final_score"),
+                "confidence": summary.get("confidence"),
+                "scores": scores,
+                "strengths": strengths,
+                "weaknesses": weaknesses,
+                "confirmed_stacks": stack_analysis.get("confirmed", []),
+                "false_claims": stack_analysis.get("false_claims", []),
+                "commits": evidence.get("commits", 0),
+                "lines_added": evidence.get("lines_added", 0),
+                "readme_exists": evidence.get("readme_exists", False),
+                "modular_structure": evidence.get("modular_structure", False),
+            })
+
         return {
             "skills": skills_output,
+            "projects": projects_output,
             "final_score": primary_summary.get("final_score"),
             "confidence": primary_summary.get("confidence"),
             "audit_summary": audit.get("audit_summary") if audit else None,
