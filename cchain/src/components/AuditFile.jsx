@@ -44,9 +44,9 @@ const AuditFile = ({ cid, fileName, walletAddress }) => {
 
       const data = await res.json();
 
-      // 4. Persist and navigate
-      localStorage.setItem('last_skill_scores', JSON.stringify(data));
-      navigate('/skills', { state: { scores: data } });
+      // 4. Persist keyed by wallet and navigate
+      localStorage.setItem(`skill_scores_${walletAddress}`, JSON.stringify(data));
+      navigate('/skills', { state: { scores: data, walletAddress } });
     } catch (err) {
       console.error('Audit error:', err);
       setError(err.message);

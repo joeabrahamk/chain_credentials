@@ -11,7 +11,7 @@ export const config = {
   // The address where your FileRegistry contract is deployed
   // You'll get this after running: truffle migrate --network development
   // Example: "0x5FbDB2315678afecb367f032d93F642f64180aa3"
-  contractAddress: "0xe718F51e8Da2f3F47D3688fCCa5751C57209Ea92",
+  contractAddress: "0x92E066357759a6970C8856F07148062731B7039C",
 
   // Blockchain Network Configuration
   // -------------------------------------------------

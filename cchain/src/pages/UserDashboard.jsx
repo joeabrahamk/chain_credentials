@@ -128,7 +128,7 @@ const UserDashboard = () => {
               <span className="user-id">{authState.userId}</span>
             </div>
           )}
-          <button onClick={() => navigate('/skills')} className="skills-button">
+          <button onClick={() => navigate('/skills', { state: { walletAddress: authState.walletAddress } })} className="skills-button">
             Skills
           </button>
           <button onClick={handleLogout} className="logout-button">
@@ -173,6 +173,43 @@ const UserDashboard = () => {
           </div>
         ) : (
           <>
+            <div className="dashboard-hero">
+              <div className="hero-visual">
+                <svg viewBox="0 0 160 160" className="hero-ring">
+                  <circle cx="80" cy="80" r="58" fill="none" stroke="#e2e8f0" strokeWidth="14" />
+                  <circle cx="80" cy="80" r="58" fill="none" stroke="url(#heroGrad)" strokeWidth="14"
+                    strokeDasharray="80 285" strokeLinecap="round"
+                    transform="rotate(-90 80 80)" className="hero-arc" />
+                  <defs>
+                    <linearGradient id="heroGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+                      <stop offset="0%" stopColor="#2563eb" stopOpacity="0.2" />
+                      <stop offset="100%" stopColor="#7c3aed" stopOpacity="1" />
+                    </linearGradient>
+                  </defs>
+                  <circle cx="80" cy="80" r="14" fill="#eff6ff" className="hero-pulse" />
+                  <circle cx="80" cy="80" r="5" fill="#2563eb" />
+                </svg>
+                {['Resume', 'Certificate', 'Portfolio', 'Transcript', 'Project'].map((tag, i) => (
+                  <span key={tag} className="hero-pill" style={{ '--i': i }}>{tag}</span>
+                ))}
+              </div>
+
+              <div className="hero-text">
+                <p className="hero-label">Credential Vault</p>
+                <h2 className="hero-heading">
+                  {authState.userId ? `Welcome, ${authState.userId}` : 'Your Dashboard'}
+                </h2>
+                <p className="hero-sub">
+                  Store credentials on-chain. Audit your skills. Prove your expertise.
+                </p>
+                <div className="hero-badges">
+                  <span className="hero-badge">On-chain storage</span>
+                  <span className="hero-badge">IPFS-backed</span>
+                  <span className="hero-badge">Audit-ready</span>
+                </div>
+              </div>
+            </div>
+
             <UploadFile 
               userId={authState.userId} 
               onUploadComplete={handleUploadComplete}
@@ -361,6 +398,146 @@ const UserDashboard = () => {
           margin: 40px auto;
           padding: 0 24px;
           animation: fadeIn 0.4s ease-out;
+        }
+
+        /* -- Dashboard hero -- */
+        .dashboard-hero {
+          display: flex;
+          align-items: center;
+          gap: 32px;
+          background: linear-gradient(135deg, #0f172a 0%, #1e293b 60%, #1a1040 100%);
+          border-radius: 20px;
+          padding: 32px 36px;
+          margin-bottom: 28px;
+          border: 1px solid rgba(99,102,241,0.25);
+          box-shadow: 0 4px 32px rgba(37,99,235,0.12), inset 0 1px 0 rgba(255,255,255,0.05);
+          position: relative;
+          overflow: hidden;
+        }
+
+        .dashboard-hero::before {
+          content: '';
+          position: absolute;
+          inset: 0;
+          background: radial-gradient(ellipse 60% 80% at 85% 50%, rgba(124,58,237,0.12) 0%, transparent 70%);
+          pointer-events: none;
+        }
+
+        /* Scan ring */
+        .hero-visual {
+          position: relative;
+          width: 160px;
+          height: 160px;
+          flex-shrink: 0;
+        }
+
+        .hero-ring {
+          width: 160px;
+          height: 160px;
+        }
+
+        .hero-arc {
+          animation: heroRotate 3s linear infinite;
+          transform-origin: 80px 80px;
+        }
+
+        @keyframes heroRotate {
+          from { transform: rotate(-90deg); }
+          to   { transform: rotate(270deg); }
+        }
+
+        .hero-pulse {
+          animation: heroPulse 2.2s ease-in-out infinite;
+          transform-origin: 80px 80px;
+        }
+
+        @keyframes heroPulse {
+          0%, 100% { r: 14; opacity: 1; }
+          50%       { r: 20; opacity: 0.4; }
+        }
+
+        /* Floating pills around the ring */
+        .hero-pill {
+          position: absolute;
+          font-size: 10px;
+          font-weight: 600;
+          padding: 3px 9px;
+          border-radius: 20px;
+          background: rgba(255,255,255,0.08);
+          border: 1px solid rgba(255,255,255,0.15);
+          color: #cbd5e1;
+          white-space: nowrap;
+          animation: heroPillFloat 3.2s ease-in-out infinite;
+          animation-delay: calc(var(--i) * 0.6s);
+        }
+        .hero-pill:nth-child(2)  { top: -8px;   left: 50px; }
+        .hero-pill:nth-child(3)  { top: 16px;   right: -28px; }
+        .hero-pill:nth-child(4)  { top: 72px;   right: -40px; }
+        .hero-pill:nth-child(5)  { bottom: 14px; right: -20px; }
+        .hero-pill:nth-child(6)  { top: 72px;   left: -40px; }
+
+        @keyframes heroPillFloat {
+          0%, 100% { transform: translateY(0);   opacity: 0.6; }
+          50%       { transform: translateY(-5px); opacity: 1;   }
+        }
+
+        /* Text side */
+        .hero-text {
+          flex: 1;
+          min-width: 0;
+        }
+
+        .hero-label {
+          margin: 0 0 8px;
+          font-size: 11px;
+          font-weight: 700;
+          letter-spacing: 1.5px;
+          text-transform: uppercase;
+          color: #7c3aed;
+        }
+
+        .hero-heading {
+          margin: 0 0 10px;
+          font-size: 1.6rem;
+          font-weight: 800;
+          background: linear-gradient(135deg, #f8fafc 0%, #94a3b8 100%);
+          -webkit-background-clip: text;
+          -webkit-text-fill-color: transparent;
+          background-clip: text;
+          line-height: 1.2;
+          letter-spacing: -0.5px;
+        }
+
+        .hero-sub {
+          margin: 0 0 20px;
+          font-size: 13px;
+          color: #64748b;
+          line-height: 1.7;
+        }
+
+        .hero-badges {
+          display: flex;
+          gap: 8px;
+          flex-wrap: wrap;
+        }
+
+        .hero-badge {
+          font-size: 11px;
+          font-weight: 600;
+          padding: 4px 12px;
+          border-radius: 20px;
+          background: rgba(37,99,235,0.15);
+          border: 1px solid rgba(37,99,235,0.3);
+          color: #93c5fd;
+        }
+
+        @media (max-width: 640px) {
+          .dashboard-hero {
+            flex-direction: column;
+            padding: 28px 24px;
+            text-align: center;
+          }
+          .hero-badges { justify-content: center; }
         }
 
         @keyframes fadeIn {

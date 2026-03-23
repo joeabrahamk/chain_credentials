@@ -33,14 +33,18 @@ const SkillsDashboard = () => {
 
   // ── Resolve skill scores ────────────────────────────────────────────────
   // Priority: (1) router state from audit result, (2) last saved audit in
-  // localStorage, (3) null → show empty state.
+  // localStorage keyed by wallet address, (3) null → show empty state.
+  const walletAddress = location.state?.walletAddress || null;
+  const storageKey = walletAddress ? `skill_scores_${walletAddress}` : null;
+
   const resolveSkillsData = () => {
     const routeSkills = location.state?.scores?.skills;
     if (Array.isArray(routeSkills) && routeSkills.length > 0) {
       return routeSkills.map((s) => ({ name: s.name, score: s.score, remark: s.remark, level: s.level, gaps: s.gaps, recommendations: s.recommendations }));
     }
+    if (!storageKey) return null;
     try {
-      const saved = JSON.parse(localStorage.getItem('last_skill_scores') || 'null');
+      const saved = JSON.parse(localStorage.getItem(storageKey) || 'null');
       if (saved?.skills?.length > 0) {
         return saved.skills.map((s) => ({ name: s.name, score: s.score, remark: s.remark, level: s.level, gaps: s.gaps, recommendations: s.recommendations }));
       }
@@ -51,13 +55,15 @@ const SkillsDashboard = () => {
   const SKILLS_DATA = resolveSkillsData();
   const hasAudit = SKILLS_DATA !== null;
   const auditMeta = location.state?.scores || (() => {
-    try { return JSON.parse(localStorage.getItem('last_skill_scores') || 'null'); } catch (_) { return null; }
+    if (!storageKey) return null;
+    try { return JSON.parse(localStorage.getItem(storageKey) || 'null'); } catch (_) { return null; }
   })();
   const PROJECTS_DATA = (() => {
     const routeProjects = location.state?.scores?.projects;
     if (Array.isArray(routeProjects) && routeProjects.length > 0) return routeProjects;
+    if (!storageKey) return [];
     try {
-      const saved = JSON.parse(localStorage.getItem('last_skill_scores') || 'null');
+      const saved = JSON.parse(localStorage.getItem(storageKey) || 'null');
       if (saved?.projects?.length > 0) return saved.projects;
     } catch (_) { /* ignore */ }
     return [];
@@ -168,12 +174,48 @@ const SkillsDashboard = () => {
 
         {!hasAudit ? (
           <div className="empty-audit-state">
-            <div className="empty-audit-icon">📋</div>
-            <h2>No Audit Yet</h2>
-            <p>Run a Skill Audit from your dashboard to see your real tech-stack proficiency scores here.</p>
+            <div className="empty-audit-visual">
+              {/* Ghost donut */}
+              <svg viewBox="0 0 200 200" className="ghost-donut">
+                <circle cx="100" cy="100" r="70" fill="none" stroke="#e2e8f0" strokeWidth="22" />
+                <circle cx="100" cy="100" r="70" fill="none" stroke="url(#scanGrad)" strokeWidth="22"
+                  strokeDasharray="110 330" strokeLinecap="round"
+                  transform="rotate(-90 100 100)" className="scan-arc" />
+                <defs>
+                  <linearGradient id="scanGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+                    <stop offset="0%" stopColor="#3b82f6" stopOpacity="0" />
+                    <stop offset="100%" stopColor="#8b5cf6" stopOpacity="1" />
+                  </linearGradient>
+                </defs>
+                {/* Center pulse */}
+                <circle cx="100" cy="100" r="18" fill="#eff6ff" className="pulse-circle" />
+                <text x="100" y="96" textAnchor="middle" className="ghost-center-top">No</text>
+                <text x="100" y="112" textAnchor="middle" className="ghost-center-bot">Audit</text>
+              </svg>
+
+              {/* Floating tech pills */}
+              {['Python','React','Node.js','Docker','TypeScript','Go'].map((tech, i) => (
+                <span key={tech} className="float-pill" style={{ '--i': i }}>{tech}</span>
+              ))}
+            </div>
+
+            <h2 className="empty-title">No Audit Yet</h2>
+            <p className="empty-desc">
+              Upload your resume from the dashboard, hit <strong>Audit</strong> on any file,
+              and watch your real tech&#8209;stack scores appear here.
+            </p>
+
             <button className="go-dashboard-btn" onClick={() => navigate('/dashboard')}>
-              Go to Dashboard
+              <span className="btn-icon">⚡</span> Run Your First Audit
             </button>
+
+            <div className="empty-steps">
+              <div className="step"><span className="step-num">1</span>Upload resume to IPFS</div>
+              <div className="step-arrow">→</div>
+              <div className="step"><span className="step-num">2</span>Click Audit on the file</div>
+              <div className="step-arrow">→</div>
+              <div className="step"><span className="step-num">3</span>See your scores</div>
+            </div>
           </div>
         ) : (
         <>
@@ -711,7 +753,172 @@ const SkillsDashboard = () => {
           }
         }
 
-        /* ── Audit banner & notice ─────────────────────────── */
+        /* ── Empty audit state ─────────────────────────── */
+        .empty-audit-state {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          padding: 48px 24px 56px;
+          text-align: center;
+          position: relative;
+        }
+
+        .empty-audit-visual {
+          position: relative;
+          width: 220px;
+          height: 220px;
+          margin-bottom: 32px;
+        }
+
+        .ghost-donut {
+          width: 220px;
+          height: 220px;
+        }
+
+        .scan-arc {
+          animation: scanRotate 2.4s linear infinite;
+          transform-origin: 100px 100px;
+        }
+
+        @keyframes scanRotate {
+          from { transform: rotate(-90deg); }
+          to   { transform: rotate(270deg); }
+        }
+
+        .pulse-circle {
+          animation: pulseScale 2s ease-in-out infinite;
+          transform-origin: 100px 100px;
+        }
+
+        @keyframes pulseScale {
+          0%, 100% { r: 18; opacity: 1; }
+          50%       { r: 24; opacity: 0.5; }
+        }
+
+        .ghost-center-top {
+          font-size: 13px;
+          font-weight: 700;
+          fill: #94a3b8;
+        }
+
+        .ghost-center-bot {
+          font-size: 10px;
+          fill: #cbd5e1;
+        }
+
+        /* Floating pills positioned around the donut */
+        .float-pill {
+          position: absolute;
+          font-size: 11px;
+          font-weight: 600;
+          padding: 4px 10px;
+          border-radius: 20px;
+          background: rgba(255,255,255,0.9);
+          border: 1px solid #e2e8f0;
+          color: #475569;
+          box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+          white-space: nowrap;
+          animation: floatPill 3s ease-in-out infinite;
+          animation-delay: calc(var(--i) * 0.5s);
+          /* positions around the circle */
+        }
+        .float-pill:nth-child(2)  { top: -10px;  left: 70px;  }
+        .float-pill:nth-child(3)  { top: 20px;   right: -30px; }
+        .float-pill:nth-child(4)  { top: 85px;   right: -45px; }
+        .float-pill:nth-child(5)  { bottom: 20px; right: -25px; }
+        .float-pill:nth-child(6)  { bottom: -10px; left: 55px; }
+        .float-pill:nth-child(7)  { top: 80px;   left: -42px; }
+
+        @keyframes floatPill {
+          0%, 100% { transform: translateY(0px);   opacity: 0.7; }
+          50%       { transform: translateY(-6px);  opacity: 1; }
+        }
+
+        .empty-title {
+          margin: 0 0 12px;
+          font-size: 1.6rem;
+          font-weight: 800;
+          background: linear-gradient(135deg, #1e293b 0%, #475569 100%);
+          -webkit-background-clip: text;
+          -webkit-text-fill-color: transparent;
+          background-clip: text;
+        }
+
+        .empty-desc {
+          margin: 0 0 28px;
+          font-size: 14px;
+          color: #64748b;
+          max-width: 360px;
+          line-height: 1.7;
+        }
+
+        .go-dashboard-btn {
+          display: inline-flex;
+          align-items: center;
+          gap: 8px;
+          padding: 14px 32px;
+          background: linear-gradient(135deg, #2563eb 0%, #7c3aed 100%);
+          color: #fff;
+          border: none;
+          border-radius: 50px;
+          font-size: 15px;
+          font-weight: 700;
+          cursor: pointer;
+          box-shadow: 0 4px 20px rgba(37,99,235,0.35);
+          transition: all 0.2s ease;
+          animation: btnGlow 2.5s ease-in-out infinite;
+          margin-bottom: 36px;
+        }
+
+        .go-dashboard-btn:hover {
+          transform: translateY(-2px);
+          box-shadow: 0 8px 28px rgba(37,99,235,0.45);
+        }
+
+        @keyframes btnGlow {
+          0%, 100% { box-shadow: 0 4px 20px rgba(37,99,235,0.35); }
+          50%       { box-shadow: 0 4px 32px rgba(124,58,237,0.5); }
+        }
+
+        .btn-icon {
+          font-size: 18px;
+        }
+
+        .empty-steps {
+          display: flex;
+          align-items: center;
+          gap: 10px;
+          flex-wrap: wrap;
+          justify-content: center;
+        }
+
+        .step {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          font-size: 13px;
+          color: #64748b;
+          font-weight: 500;
+        }
+
+        .step-num {
+          width: 22px;
+          height: 22px;
+          background: linear-gradient(135deg, #2563eb, #7c3aed);
+          color: #fff;
+          border-radius: 50%;
+          font-size: 11px;
+          font-weight: 700;
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          flex-shrink: 0;
+        }
+
+        .step-arrow {
+          color: #cbd5e1;
+          font-size: 16px;
+        }
         .audit-meta-banner {
           background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
           border: 1px solid #bfdbfe;
